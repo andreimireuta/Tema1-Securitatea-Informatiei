@@ -1,0 +1,20 @@
+Comenzi pentru A:
+    -Compilarea :    
+        g++ A.cpp -o A.exe -lcrypto
+    -Rularea:
+        ./A.exe 127.0.0.12 2024
+
+Comenzi pentru B:
+    -Compilarea:
+        g++ B.cpp -o B.exe -lcrypto
+    -Rularea:
+        ./B.exe 127.0.0.12 2024
+Comenzi pentru KM:
+    -Compilarea:
+        g++ KM.cpp -o KM.exe -lcrypto -pthread
+    -Rularea:
+        ./KM.exe 127.0.0.12 2024
+
+    
+
+
