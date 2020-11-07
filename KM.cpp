@@ -181,8 +181,8 @@ unsigned char criptedBlockPrimitA[100]; // blocul criptat primit de la A
 unsigned char mesajTrimitereBlocA[100];
 unsigned char encriptedBlock[16]; //encrypted block of chars -ec
 unsigned char decriptedBlock[16]; //the decrypted block of char -c
-char mesajConfirmareCitire[100];//mesajul in care vedem daca mai avem caracatere de citit
-char mesajInceputComunicare[16]="start";
+char mesajConfirmareCitire[100];  //mesajul in care vedem daca mai avem caracatere de citit
+char mesajInceputComunicare[16] = "start";
 string line;
 
 void raspunde(void *arg)
@@ -200,7 +200,6 @@ void raspunde(void *arg)
 
     recv(tdL.A, &mesajModA, 100, 0); // received the operating mode from A
     recv(tdL.B, &mesajModB, 100, 0); // received the operating mode from B
-    
 
     int randomMod = rand() % 2;
     //cout<<randomMod<<endl;
@@ -223,7 +222,7 @@ void raspunde(void *arg)
 
         recv(tdL.A, &encriptedMesajPrimitA, 100, 0); // primeste mesajul de ready de la A si B criptat
         recv(tdL.B, &encriptedMesajPrimitB, 100, 0);
-        cout<<"am rpimit mesajul de incepere criptat"<<endl;
+        cout << "am rpimit mesajul de incepere criptat" << endl;
 
         if (strcmp(mesajModA, "ECB") == 0 || strcmp(mesajModA, "ecb") == 0) // daca modul ales este ecb decripteaza cu k1
         {
@@ -231,9 +230,9 @@ void raspunde(void *arg)
             EVP_DecryptUpdate(ctx, decriptedMesajPrimitA, &outlen, encriptedMesajPrimitA, sizeof(encriptedMesajPrimitA));
             EVP_DecryptInit(ctx, EVP_aes_128_ecb(), k1, iv);
             EVP_DecryptUpdate(ctx, decriptedMesajPrimitB, &outlen, encriptedMesajPrimitB, sizeof(encriptedMesajPrimitB));
-            send(tdL.A,&mesajInceputComunicare,100,0);
-            send(tdL.B,&mesajInceputComunicare,100,0);
-            cout<<"Am trimis inceputul de comunicare"<<endl;
+            send(tdL.A, &mesajInceputComunicare, 100, 0);
+            send(tdL.B, &mesajInceputComunicare, 100, 0);
+            cout << "Am trimis inceputul de comunicare" << endl;
         }
         else //altfel, daca este cfb decripteaza cu k2
         {
@@ -241,45 +240,43 @@ void raspunde(void *arg)
             EVP_DecryptUpdate(ctx, decriptedMesajPrimitA, &outlen, encriptedMesajPrimitA, sizeof(encriptedMesajPrimitA));
             EVP_DecryptInit(ctx, EVP_aes_128_cfb(), k2, iv);
             EVP_DecryptUpdate(ctx, decriptedMesajPrimitB, &outlen, encriptedMesajPrimitB, sizeof(encriptedMesajPrimitB));
-            send(tdL.A,&mesajInceputComunicare,100,0);
-            send(tdL.B,&mesajInceputComunicare,100,0);
-            cout<<"Am trimis inceputul de comunicare"<<endl;
+            send(tdL.A, &mesajInceputComunicare, 100, 0);
+            send(tdL.B, &mesajInceputComunicare, 100, 0);
+            cout << "Am trimis inceputul de comunicare" << endl;
         }
 
-        while(true){
-            cout<<"Am intrat in while.Problema e mai jos."<<endl;
-            
-            recv(tdL.A, &mesajConfirmareCitire, 128, 0);
-            cout<<"Am trimis la B "<<endl;  //confirmarea ca mai sunt sau nu caractere in fisier
-            send(tdL.B,&mesajConfirmareCitire,100,0);
+        while (true)
+        {
+            cout << "Am intrat in while.Problema e mai jos." << endl;
 
-            if(strcmp(mesajConfirmareCitire,"finish")==0)
+            recv(tdL.A, &mesajConfirmareCitire, 128, 0);
+            cout << "Am trimis la B " << endl; //confirmarea ca mai sunt sau nu caractere in fisier
+            send(tdL.B, &mesajConfirmareCitire, 100, 0);
+
+            if (strcmp(mesajConfirmareCitire, "finish") == 0)
                 break;
-            
+
             recv(tdL.A, &criptedBlockPrimitA, 100, 0); //primeste blocurile criptate de catre A
-            
+
             //recv(tdL.A, &mesajTrimitereBlocA, 100, 0);
 
             cout << "Am primit de la A:" << criptedBlockPrimitA;
- 
+
             send(tdL.B, &criptedBlockPrimitA, 100, 0);
         }
 
-        
         recv(tdL.A, &mesajTrimitereBlocA, 100, 0);
 
         cout << "Am primit de la A:" << criptedBlockPrimitA;
- 
+
         send(tdL.B, &criptedBlockPrimitA, 100, 0);
     }
-    else if (randomMod == 1)  //daca random este 1 va fi modul ecb, altfel va fi cfb
+    else if (randomMod == 1) //daca random este 1 va fi modul ecb, altfel va fi cfb
     {
-        memcpy(mesajMod,"ecb",3);
+        KM(mesajModA); // Crearea cheilor si a vectorului de initializare in modul ales
 
-        KM(mesajMod); // Crearea cheilor si a vectorului de initializare in modul ales
-
-        send(tdL.A, &mesajMod, 100, 0); // am trimis modul de criptare lui A si B
-        send(tdL.B, &mesajMod, 100, 0);
+        send(tdL.A, &mesajModA, 100, 0); // am trimis modul de criptare lui A si B
+        send(tdL.B, &mesajModA, 100, 0);
 
         send(tdL.A, &encriptedVect, 100, 0); //trimitem cheia criptata
         send(tdL.B, &encriptedVect, 100, 0);
@@ -287,24 +284,116 @@ void raspunde(void *arg)
         send(tdL.A, &iv, 100, 0); //trimitem vectorul de initializare criptat
         send(tdL.B, &iv, 100, 0);
 
-        recv(tdL.A, &mesajeTransmise, 100, 0); //receive the ready message from A
-        recv(tdL.B, &mesajeTransmise, 100, 0); //receive the ready message from B
+        //recv(tdL.A, &mesajeTransmise, 100, 0); //receive the ready message from A
+        //recv(tdL.B, &mesajeTransmise, 100, 0); //receive the ready message from B
 
-        recv(tdL.A, &encriptedMesajPrimitA, 100, 0); // primeste mesajul de ready de la A si B
+        recv(tdL.A, &encriptedMesajPrimitA, 100, 0); // primeste mesajul de ready de la A si B criptat
         recv(tdL.B, &encriptedMesajPrimitB, 100, 0);
+        cout << "am rpimit mesajul de incepere criptat" << endl;
 
-        EVP_DecryptInit(ctx, EVP_aes_128_ecb(), k1, iv); // decriptam mesajul folosind k1
-        EVP_DecryptUpdate(ctx, decriptedMesajPrimitA, &outlen, encriptedMesajPrimitA, sizeof(encriptedMesajPrimitA));
+        if (strcmp(mesajModA, "ECB") == 0 || strcmp(mesajModA, "ecb") == 0) // daca modul ales este ecb decripteaza cu k1
+            EVP_DecryptInit(ctx, EVP_aes_128_ecb(), k1, iv);
+            EVP_DecryptUpdate(ctx, decriptedMesajPrimitA, &outlen, encriptedMesajPrimitA, sizeof(encriptedMesajPrimitA));
 
-        recv(tdL.A, &criptedBlockPrimitA, 100, 0);
+            EVP_DecryptInit(ctx, EVP_aes_128_ecb(), k1, iv);
+            EVP_DecryptUpdate(ctx, decriptedMesajPrimitB, &outlen, encriptedMesajPrimitB, sizeof(encriptedMesajPrimitB));
+
+            send(tdL.A, &mesajInceputComunicare, 100, 0);
+            send(tdL.B, &mesajInceputComunicare, 100, 0);
+            cout << "Am trimis inceputul de comunicare" << endl;
+        
+
+        while (true)
+        {
+            cout << "Am intrat in while.Problema e mai jos." << endl;
+
+            recv(tdL.A, &mesajConfirmareCitire, 128, 0);
+            cout << "Am trimis la B " << endl; //confirmarea ca mai sunt sau nu caractere in fisier
+            send(tdL.B, &mesajConfirmareCitire, 100, 0);
+
+            if (strcmp(mesajConfirmareCitire, "finish") == 0)
+                break;
+
+            recv(tdL.A, &criptedBlockPrimitA, 100, 0); //primeste blocurile criptate de catre A
+
+            //recv(tdL.A, &mesajTrimitereBlocA, 100, 0);
+
+            cout << "Am primit de la A:" << criptedBlockPrimitA;
+
+            send(tdL.B, &criptedBlockPrimitA, 100, 0);
+        }
+
         recv(tdL.A, &mesajTrimitereBlocA, 100, 0);
 
         cout << "Am primit de la A:" << criptedBlockPrimitA;
 
         send(tdL.B, &criptedBlockPrimitA, 100, 0);
-
     }
+    else  //modul cfb
+    {
+        KM(mesajModA); // Crearea cheilor si a vectorului de initializare in modul ales
 
+        send(tdL.A, &mesajModA, 100, 0); // am trimis modul de criptare lui A si B
+        send(tdL.B, &mesajModA, 100, 0);
 
-   
+        send(tdL.A, &encriptedVect, 100, 0); //trimitem cheia criptata
+        send(tdL.B, &encriptedVect, 100, 0);
+
+        send(tdL.A, &iv, 100, 0); //trimitem vectorul de initializare criptat
+        send(tdL.B, &iv, 100, 0);
+
+        //recv(tdL.A, &mesajeTransmise, 100, 0); //receive the ready message from A
+        //recv(tdL.B, &mesajeTransmise, 100, 0); //receive the ready message from B
+
+        recv(tdL.A, &encriptedMesajPrimitA, 100, 0); // primeste mesajul de ready de la A si B criptat
+        recv(tdL.B, &encriptedMesajPrimitB, 100, 0);
+        cout << "am primit mesajul de incepere criptat" << endl;
+
+        /*if (strcmp(mesajModA, "ECB") == 0 || strcmp(mesajModA, "ecb") == 0) // daca modul ales este ecb decripteaza cu k1
+        {
+            EVP_DecryptInit(ctx, EVP_aes_128_ecb(), k1, iv);
+            EVP_DecryptUpdate(ctx, decriptedMesajPrimitA, &outlen, encriptedMesajPrimitA, sizeof(encriptedMesajPrimitA));
+            EVP_DecryptInit(ctx, EVP_aes_128_ecb(), k1, iv);
+            EVP_DecryptUpdate(ctx, decriptedMesajPrimitB, &outlen, encriptedMesajPrimitB, sizeof(encriptedMesajPrimitB));
+            send(tdL.A, &mesajInceputComunicare, 100, 0);
+            send(tdL.B, &mesajInceputComunicare, 100, 0);
+            cout << "Am trimis inceputul de comunicare" << endl;
+        }
+        else //altfel, daca este cfb decripteaza cu k2
+        {*/
+            EVP_DecryptInit(ctx, EVP_aes_128_cfb(), k2, iv);
+            EVP_DecryptUpdate(ctx, decriptedMesajPrimitA, &outlen, encriptedMesajPrimitA, sizeof(encriptedMesajPrimitA));
+            EVP_DecryptInit(ctx, EVP_aes_128_cfb(), k2, iv);
+            EVP_DecryptUpdate(ctx, decriptedMesajPrimitB, &outlen, encriptedMesajPrimitB, sizeof(encriptedMesajPrimitB));
+            send(tdL.A, &mesajInceputComunicare, 100, 0);
+            send(tdL.B, &mesajInceputComunicare, 100, 0);
+            cout << "Am trimis inceputul de comunicare" << endl;
+        //}
+
+        while (true)
+        {
+            cout << "Am intrat in while.Problema e mai jos." << endl;
+
+            recv(tdL.A, &mesajConfirmareCitire, 128, 0);
+            cout << "Am trimis la B " << endl; //confirmarea ca mai sunt sau nu caractere in fisier
+            send(tdL.B, &mesajConfirmareCitire, 100, 0);
+
+            if (strcmp(mesajConfirmareCitire, "finish") == 0)
+                break;
+
+            recv(tdL.A, &criptedBlockPrimitA, 100, 0); //primeste blocurile criptate de catre A
+
+            //recv(tdL.A, &mesajTrimitereBlocA, 100, 0);
+
+            cout << "Am primit de la A:" << criptedBlockPrimitA;
+
+            send(tdL.B, &criptedBlockPrimitA, 100, 0);
+        }
+
+        recv(tdL.A, &mesajTrimitereBlocA, 100, 0);
+
+        cout << "Am primit de la A:" << criptedBlockPrimitA;
+
+        send(tdL.B, &criptedBlockPrimitA, 100, 0);
+    }
 }
