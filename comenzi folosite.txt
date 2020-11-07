@@ -14,7 +14,9 @@ Comenzi pentru KM:
         g++ KM.cpp -o KM.exe -lcrypto -pthread
     -Rularea:
         ./KM.exe 127.0.0.12 2024
-
+  
+  
+ -Ar trebui sa fie compilate din nou fisierele .exe, deoarece le-au fost aduse niste modificari dupa ce au fost adaugate.
     
 
 
