@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
                 }
                 EVP_CIPHER_CTX_free(ctx);*/
 
-    while (getline(fin, line)) //cat timp mai avem ce citi
+    while (fin) //cat timp mai avem ce citi
     {
 
         cout<<"E ok .Intra in while.";
